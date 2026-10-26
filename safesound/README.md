@@ -45,6 +45,23 @@ synthetic sensor traces and phrases, posts VMS camera cues, and prints the resul
 The simulator's scores depend on the history already in the database. Start from a fresh DB (delete
 `safesound.db`) to reproduce the table exactly.
 
+## Hosting on GitHub
+
+**GitHub Pages: public demo of the dashboard.** The workflow `.github/workflows/safesound-pages.yml`
+runs the tests, runs the simulator during the build, and publishes a serverless snapshot of the
+dashboard: `python -m safesound.static_export _site`. There, every demo account sees its own
+role-filtered data. Acknowledging, resolving and keyword edits work, but only in that browser tab.
+One-time setup: **Settings → Pages → Source: GitHub Actions**. After that, every push to `master`
+redeploys the demo to `https://<owner>.github.io/<repo>/`.
+
+**GitHub Codespaces: the full live system.** Choose **Code → Codespaces → Create codespace**. The
+dev container installs the dependencies, starts the server on port 8000, fills it with simulated
+data, and opens the dashboard. Run more scenarios with
+`cd safesound && python -m safesound.simulator --scenario vape_bus`.
+
+For a permanent live deployment (real devices posting alerts), run `python -m safesound.server --host 0.0.0.0`
+on the school's on-prem server or AI Cell, behind HTTPS.
+
 ## Layout
 
 | Path | What it does |
@@ -61,6 +78,7 @@ The simulator's scores depend on the history already in the database. Start from
 | `safesound/server/app.py` | FastAPI app (API docs at `/docs`) |
 | `safesound/server/static/index.html` | Staff dashboard. Responsive, so it doubles as the mobile app, with desktop notifications |
 | `safesound/scenarios.py`, `safesound/simulator.py` | Reference scenarios, synthetic sensor traces, replay CLI |
+| `safesound/static_export.py` | Builds the serverless GitHub Pages demo |
 
 ## Fusion Score
 
