@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f766e">
+<title>SafeSound AI</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--ink:#14181f;--muted:#5d6675;--line:#e3e6eb;--accent:#0f766e;--accent-ink:#fff;
+--crit:#b42318;--crit-bg:#fde8e7;--high:#c2410c;--high-bg:#ffedd5;--med:#a16207;--med-bg:#fef3c7;--low:#475467;--low-bg:#eef0f3;--ok:#067647;--ok-bg:#dcfae6;
+--shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);--radius:10px}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--panel:#161b22;--ink:#e6edf3;--muted:#8b96a5;--line:#2a313c;--accent:#2dd4bf;--accent-ink:#04211d;
+--crit:#ff8a80;--crit-bg:#3d1414;--high:#fdba74;--high-bg:#3b2410;--med:#fcd34d;--med-bg:#352b0c;--low:#a3acb9;--low-bg:#232a33;--ok:#6ee7b7;--ok-bg:#0f2e22;--shadow:none}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.brand{font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand svg{color:var(--accent)}
+nav{display:flex;gap:4px;overflow-x:auto;flex:1}
+nav button{border:0;background:none;padding:7px 11px;border-radius:8px;cursor:pointer;color:var(--muted);white-space:nowrap}
+nav button.on{background:var(--bg);color:var(--ink);font-weight:600}
+.who{color:var(--muted);font-size:13px;white-space:nowrap}
+.bell{position:relative;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:5px 9px;cursor:pointer}
+.bell b{position:absolute;top:-6px;right:-6px;background:var(--crit);color:#fff;border-radius:10px;font-size:11px;padding:0 5px}
+main{max-width:1200px;margin:0 auto;padding:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 10px}h3{font-size:14px;margin:14px 0 6px;color:var(--muted);font-weight:600}
+.row{display:flex;gap:14px;flex-wrap:wrap}.row>*{flex:1;min-width:240px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px}
+.kpi .v{font-size:24px;font-weight:700}.kpi .l{color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--bg)}
+.pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
+.critical{color:var(--crit);background:var(--crit-bg)}.high{color:var(--high);background:var(--high-bg)}
+.medium{color:var(--med);background:var(--med-bg)}.low{color:var(--low);background:var(--low-bg)}.okp{color:var(--ok);background:var(--ok-bg)}
+.score{font-weight:700;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}.small{font-size:12px}
+.btn{border:1px solid var(--line);background:var(--panel);padding:6px 12px;border-radius:8px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--crit)}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(520px,100%);background:var(--panel);border-left:1px solid var(--line);z-index:10;overflow:auto;padding:18px;box-shadow:-8px 0 24px rgba(0,0,0,.15);display:none}
+.drawer.open{display:block}
+.bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.gauge{font-size:44px;font-weight:800;line-height:1}
+.factor{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.src{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);width:66px;flex:none}
+.heat{overflow-x:auto}.heat table{width:auto}.heat table td,.heat table th{padding:3px;text-align:center;border:0;font-size:11px}
+.heat td.c{width:28px;height:24px;border-radius:4px}
+.heat td.name{text-align:left;white-space:nowrap;padding-right:8px;font-size:12px}
+.login{max-width:380px;margin:9vh auto}
+.login label{display:block;margin:10px 0 4px;font-size:13px;color:var(--muted)}.login input{width:100%}
+.privacy{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--muted);margin-top:12px}
+.hbars div{display:flex;align-items:center;gap:8px;margin:4px 0}.hbars span{width:170px;flex:none;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbars .bar{flex:1}.hbars em{font-style:normal;width:28px;text-align:right;font-size:12px}
+.notes{position:absolute;right:16px;top:52px;width:min(380px,calc(100% - 32px));max-height:60vh;overflow:auto;z-index:8;display:none}
+.notes.open{display:block}
+.demo-banner{background:var(--med-bg);color:var(--med);font-size:13px;padding:8px 16px;text-align:center}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+@media (max-width:700px){.hide-sm{display:none}header{flex-wrap:wrap}nav{order:3;flex-basis:100%}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const st = {token: sessionStorage.getItem("ss_token"), me: null, tab: "live", incidents: [], notes: [], selected: null};
+const LEVEL = {critical:"Critical", high:"High", medium:"Medium", low:"Low"};
+const TYPE = {keyword:"Keyword", vape:"Vape", smoke:"Smoke", aerosol_spike:"Aerosol spike"};
+const has = p => st.me?.permissions.includes(p);
+
+// ---------- static demo (GitHub Pages): answer API calls from a build-time snapshot ----------
+const STATIC = !!window.SAFESOUND_STATIC;
+const demo = {snap: null};
+const CAT_WEIGHT = {drug_name: 0.4, drug_slang: 0.45, deal_phrase: 0.25, hiding_phrase: 0.25};
+async function loadSnap(user) {
+  const r = await fetch(`demo-data/${encodeURIComponent(user)}.json`);
+  if (!r.ok) return false;
+  demo.snap = await r.json();
+  return true;
+}
+async function staticApi(path, opts) {
+  const method = opts.method || "GET", body = opts.body ? JSON.parse(opts.body) : {};
+  const [p, qs] = path.split("?"), q = new URLSearchParams(qs || "");
+  if (p === "/api/auth/login") {
+    if (body.password !== "safesound123" || !(await loadSnap(body.username))) throw new Error("wrong username or password");
+    return {token: "static:" + body.username, user: demo.snap.me};
+  }
+  if (!demo.snap && !(await loadSnap((st.token || "").replace("static:", "")))) { logout(); throw new Error("signed out"); }
+  const s = demo.snap, me = s.me, now = new Date().toISOString();
+  const allowed = v => { if (v == null) throw new Error("not allowed for your role"); return v; };
+  let m;
+  if (p === "/api/auth/logout") return {ok: true};
+  if (p === "/api/me") return me;
+  if (p === "/api/incidents") {
+    let rows = s.incidents.filter(i => q.get("status") ? i.status === q.get("status") : i.status !== "suppressed");
+    if (q.get("level")) rows = rows.filter(i => i.level === q.get("level"));
+    return rows;
+  }
+  if ((m = p.match(/^\/api\/incidents\/(\d+)(?:\/(ack|resolve))?$/))) {
+    const d = s.details[m[1]], row = s.incidents.find(i => i.id === +m[1]);
+    if (!d) throw new Error("incident not found");
+    if (m[2] === "ack") Object.assign(d, {status: "acknowledged", acknowledged_by: me.display_name, acknowledged_at: now});
+    if (m[2] === "resolve") Object.assign(d, {status: "resolved", outcome: body.outcome, notes: body.notes, resolved_by: me.display_name, resolved_at: now});
+    Object.assign(row, {status: d.status, outcome: d.outcome});
+    return d;
+  }
+  if (p === "/api/notifications") return s.notifications;
+  if (p === "/api/notifications/read") { s.notifications.forEach(n => n.unread = false); return {ok: true}; }
+  if (p === "/api/reports/hotspots") return allowed(s.hotspots[q.get("days") || "30"]);
+  if (p === "/api/keywords" && method === "GET") return allowed(s.keywords);
+  if (p === "/api/keywords" && method === "POST") {
+    const kws = s.keywords.keywords;
+    if (kws.some(k => k.term === body.term.trim())) throw new Error("term already exists");
+    const w = CAT_WEIGHT[body.category];
+    kws.unshift({id: Math.max(0, ...kws.map(k => k.id)) + 1, term: body.term.trim(), lang: body.lang, category: body.category, weight: null,
+      enabled: 1, confirmed: 0, false_alarms: 0, base_weight: w, feedback_factor: 1, effective_weight: w, suggest_review: false});
+    s.keywords.version++;
+    return {ok: true};
+  }
+  if ((m = p.match(/^\/api\/keywords\/(\d+)$/))) {
+    const kws = s.keywords.keywords, k = kws.find(k => k.id === +m[1]);
+    if (method === "DELETE") s.keywords.keywords = kws.filter(x => x !== k);
+    else if (k && body.enabled != null) k.enabled = body.enabled ? 1 : 0;
+    s.keywords.version++;
+    return {ok: true};
+  }
+  if (p === "/api/devices" && method === "GET") return allowed(s.devices);
+  if (p === "/api/locations") return s.locations;
+  if (p === "/api/audit") return allowed(s.audit);
+  if (p === "/api/settings") return method === "PATCH" ? Object.assign(allowed(s.settings), body) : allowed(s.settings);
+  throw new Error("this needs the live server - run SafeSound in Codespaces or locally");
+}
+
+async function api(path, opts = {}) {
+  if (STATIC) return staticApi(path, opts);
+  const r = await fetch(path, {...opts, headers: {"Content-Type": "application/json", ...(st.token ? {Authorization: "Bearer " + st.token} : {}), ...(opts.headers || {})}});
+  if (r.status === 401 && st.token) { logout(); throw new Error("signed out"); }
+  const body = r.headers.get("content-type")?.includes("json") ? await r.json() : null;
+  if (!r.ok) throw new Error(typeof body?.detail === "string" ? body.detail : r.statusText);
+  return body;
+}
+const fmtTime = iso => new Date(iso).toLocaleString([], {weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit", timeZone: st.me?.timezone});
+const levelPill = l => `<span class="pill ${l}">${LEVEL[l] || l}</span>`;
+const statusPill = s => `<span class="pill ${{new:"critical",acknowledged:"medium",resolved:"okp",logged:"low",suppressed:"low"}[s]}">${s}</span>`;
+
+function logout() { sessionStorage.removeItem("ss_token"); st.token = null; st.me = null; render(); }
+
+// ---------- login ----------
+function loginView() {
+  $("#app").innerHTML = `<div class="login card">
+    <div class="brand" style="font-size:20px;margin-bottom:6px">${logo()} SafeSound AI</div>
+    <div class="muted">Privacy-first drug, smoke &amp; vape detection</div>
+    <form id="lf"><label>Username</label><input name="u" autocomplete="username" required>
+    <label>Password</label><input name="p" type="password" autocomplete="current-password" required>
+    <div id="lerr" class="small" style="color:var(--crit);min-height:18px;margin-top:6px"></div>
+    <button class="btn primary" style="width:100%">Sign in</button></form>
+    <div class="privacy">${shield()}<span>Devices never stream, record or store audio. Only short alerts (type, time, location, risk) leave the device. No cameras in washrooms or changing rooms.</span></div>
+    <p class="small muted">Demo accounts: admin, principal, supervisor, security, pe, bus, counselor — password <code>safesound123</code></p></div>`;
+  $("#lf").onsubmit = async e => {
+    e.preventDefault();
+    try {
+      const r = await api("/api/auth/login", {method: "POST", body: JSON.stringify({username: e.target.u.value, password: e.target.p.value})});
+      st.token = r.token; sessionStorage.setItem("ss_token", r.token); await boot();
+    } catch (err) { $("#lerr").textContent = err.message; }
+  };
+}
+const logo = () => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12.5c1-1.5 2-1.5 3 0s2 1.5 3 0"/></svg>`;
+const shield = () => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:1px"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>`;
+
+// ---------- shell ----------
+function tabs() {
+  const t = [["live","Alerts"]];
+  if (has("reports:view")) t.push(["reports","Hotspots"]);
+  if (has("keywords:view")) t.push(["keywords","Keywords"]);
+  if (has("devices:manage")) t.push(["devices","Devices"]);
+  if (has("audit:view")) t.push(["audit","Audit log"]);
+  if (has("settings:edit")) t.push(["settings","Settings"]);
+  return t;
+}
+function shell() {
+  const unread = st.notes.filter(n => n.unread).length;
+  $("#app").innerHTML = `<header>
+    <div class="brand">${logo()} SafeSound AI</div>
+    <nav>${tabs().map(([k,l]) => `<button data-tab="${k}" class="${st.tab===k?"on":""}">${l}</button>`).join("")}</nav>
+    <button class="bell" id="bell" title="Notifications">🔔${unread ? `<b>${unread}</b>` : ""}</button>
+    <span class="who hide-sm">${esc(st.me.display_name)} · ${esc(st.me.role_name)}</span>
+    <button class="btn" id="lo">Sign out</button></header>
+    ${STATIC ? `<div class="demo-banner">Static demo: simulated data captured at build time. Your changes stay in this browser tab only. To run the live system with devices, the simulator and the feedback loop, open the repo in GitHub Codespaces.</div>` : ""}
+    <div class="notes card" id="notes"></div>
+    <main id="view"></main><aside class="drawer" id="drawer"></aside>`;
+  document.querySelectorAll("nav button").forEach(b => b.onclick = () => { st.tab = b.dataset.tab; render(); });
+  $("#lo").onclick = async () => { try { await api("/api/auth/logout", {method:"POST"}); } catch {} logout(); };
+  $("#bell").onclick = toggleNotes;
+}
+async function toggleNotes() {
+  const el = $("#notes");
+  if (el.classList.toggle("open")) {
+    el.innerHTML = `<h2>Notifications</h2>` + (st.notes.length ? st.notes.map(n => `<div class="factor click" data-id="${n.incident_id}" style="cursor:pointer">
+      <div><b>${esc(n.title)}</b><div class="small muted">${esc(n.body)}</div><div class="small muted">→ ${esc(n.role)} · ${fmtTime(n.ts)}</div></div>${n.unread?"<span class='pill critical'>new</span>":""}</div>`).join("") : `<div class="empty">Nothing yet</div>`);
+    el.querySelectorAll("[data-id]").forEach(d => d.onclick = () => { el.classList.remove("open"); openIncident(+d.dataset.id); });
+    await api("/api/notifications/read", {method:"POST"}); st.notes.forEach(n => n.unread = false);
+    $("#bell b")?.remove();
+  }
+}
+
+async function boot() {
+  try { st.me = await api("/api/me"); } catch { return logout(); }
+  render(); poll();
+}
+let pollTimer;
+async function poll() {
+  clearTimeout(pollTimer);
+  if (!st.token) return;
+  try {
+    const notes = await api("/api/notifications");
+    const fresh = notes.filter(n => n.unread && !st.notes.some(o => o.id === n.id));
+    st.notes = notes;
+    if (fresh.length && "Notification" in window && Notification.permission === "granted") fresh.forEach(n => new Notification(n.title, {body: n.body}));
+    const bell = $("#bell"); if (bell) { const u = notes.filter(n => n.unread).length; bell.innerHTML = "🔔" + (u ? `<b>${u}</b>` : ""); }
+    if (st.tab === "live") await loadIncidents(false);
+  } catch {}
+  pollTimer = setTimeout(poll, 5000);
+}
+
+function render() {
+  if (!st.token) return loginView();
+  if (!st.me) return boot();
+  shell();
+  ({live: liveView, reports: reportsView, keywords: keywordsView, devices: devicesView, audit: auditView, settings: settingsView}[st.tab] || liveView)();
+}
+
+// ---------- alerts ----------
+let filters = {status: "", level: "", showSup: false};
+async function liveView() {
+  $("#view").innerHTML = `<div class="kpis" id="kpis"></div>
+  <div class="card"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+    <h2 style="margin:0;flex:1">Incidents</h2>
+    <select id="fs"><option value="">Open &amp; logged</option><option value="new">New</option><option value="acknowledged">Acknowledged</option><option value="resolved">Resolved</option><option value="logged">Log only</option><option value="suppressed">Suppressed</option></select>
+    <select id="fl"><option value="">All levels</option>${Object.entries(LEVEL).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+    ${"Notification" in window && Notification.permission === "default" ? `<button class="btn" id="np">Enable desktop alerts</button>` : ""}
+  </div><div id="list"></div></div>`;
+  $("#fs").value = filters.status; $("#fl").value = filters.level;
+  $("#fs").onchange = e => { filters.status = e.target.value; loadIncidents(); };
+  $("#fl").onchange = e => { filters.level = e.target.value; loadIncidents(); };
+  $("#np") && ($("#np").onclick = () => Notification.requestPermission().then(render));
+  await loadIncidents();
+}
+async function loadIncidents() {
+  const q = new URLSearchParams({limit: 200}); if (filters.status) q.set("status", filters.status); if (filters.level) q.set("level", filters.level);
+  st.incidents = await api("/api/incidents?" + q);
+  const list = $("#list"); if (!list) return;
+  const open = st.incidents.filter(i => i.status === "new");
+  const k = (v, l) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+  $("#kpis").innerHTML = k(open.length, "New alerts") + k(open.filter(i => i.level === "critical").length, "Critical open")
+    + k(st.incidents.filter(i => i.status === "acknowledged").length, "In progress")
+    + k(st.incidents.filter(i => i.status === "logged").length, "Logged only");
+  list.innerHTML = st.incidents.length ? `<table><thead><tr><th>Score</th><th>Location</th><th>Detection</th><th class="hide-sm">Context</th><th>Time</th><th class="hide-sm">Action</th><th>Status</th></tr></thead><tbody>
+  ${st.incidents.map(i => `<tr class="click" data-id="${i.id}">
+    <td><span class="score">${i.score}</span> ${levelPill(i.level)}</td>
+    <td>${esc(i.location_name)}</td><td>${i.types.map(t => TYPE[t] || t).join(" + ")}</td>
+    <td class="hide-sm muted">${esc(i.context.describe || "")}</td><td class="small">${fmtTime(i.ts)}</td>
+    <td class="hide-sm small">${esc(i.action)}</td><td>${statusPill(i.status)}</td></tr>`).join("")}</tbody></table>`
+    : `<div class="empty">No incidents. Run the simulator to generate demo alerts.</div>`;
+  list.querySelectorAll("tr.click").forEach(r => r.onclick = () => openIncident(+r.dataset.id));
+}
+
+async function openIncident(id) {
+  const i = await api("/api/incidents/" + id), f = i.fusion, d = $("#drawer");
+  const comp = (l, v) => `<div style="margin:6px 0"><div class="small" style="display:flex;justify-content:space-between"><span>${l}</span><span>${v}</span></div><div class="bar"><i style="width:${v}%"></i></div></div>`;
+  const canAct = has("incidents:respond") && i.status !== "resolved";
+  d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Incident #${i.id}</h2><button class="btn" id="dx">Close</button></div>
+  <div style="display:flex;gap:16px;align-items:center;margin:14px 0"><div class="gauge">${i.score}</div><div>${levelPill(i.level)} ${statusPill(i.status)}<div style="margin-top:4px"><b>${esc(i.action)}</b></div></div></div>
+  <table class="small"><tr><th>Location</th><td>${esc(i.location_name)} ${i.sensitive ? `<span class="pill low">no cameras inside</span>` : ""}</td></tr>
+  <tr><th>Time</th><td>${fmtTime(i.ts)}</td></tr><tr><th>Context</th><td>${esc(i.context.describe)}</td></tr>
+  <tr><th>Detected</th><td>${i.types.map(t => TYPE[t]).join(" + ")}${i.alert.sensor ? ` · PM2.5 peak ${i.alert.sensor.peak_pm2_5} µg/m³, ${i.alert.sensor.duration_s}s` : ""}</td></tr>
+  ${i.alert.keywords.length ? `<tr><th>Keywords</th><td>${i.alert.keywords.map(k => `<span class="pill low" dir="auto">${esc(k.term)}</span> <span class="muted">${k.category.replace("_"," ")}</span>`).join("<br>")}</td></tr>` : ""}
+  <tr><th>Routed to</th><td>${i.routed_roles.length ? i.routed_roles.join(", ") : "—"}</td></tr>
+  <tr><th>Device</th><td>${esc(i.device_id)} · local risk ${esc(i.alert.local_risk)}</td></tr>
+  ${i.acknowledged_by ? `<tr><th>Acknowledged</th><td>${esc(i.acknowledged_by)} · ${fmtTime(i.acknowledged_at)}</td></tr>` : ""}
+  ${i.resolved_by ? `<tr><th>Resolved</th><td>${esc(i.resolved_by)} · ${esc(i.outcome)} · ${fmtTime(i.resolved_at)}${i.notes ? `<div class="muted">${esc(i.notes)}</div>` : ""}</td></tr>` : ""}</table>
+  <h3>Fusion score breakdown</h3>
+  ${comp("Keyword", f.components.keyword)}${comp("Smoke / vape sensor", f.components.sensor)}${comp("Video (outside area)", f.components.video)}
+  <div class="small muted" style="margin:6px 0">Combined evidence ${f.components.evidence} · context ${f.components.context_points >= 0 ? "+" : ""}${f.components.context_points} · history +${f.components.history_points}</div>
+  ${f.factors.map(x => `<div class="factor small"><span class="src">${x.source}</span><span style="flex:1">${esc(x.label)}</span><span class="muted">${x.points ? (x.points > 0 ? "+" : "") + x.points + " pts" : x.value != null ? Math.round(x.value * 100) + "%" : ""}</span></div>`).join("")}
+  <div class="privacy">${shield()}<span>This alert contains no audio and no transcript — only the matched term from the school's list, the sensor reading summary, time and location.</span></div>
+  ${canAct ? `<h3>Response</h3><div style="display:flex;gap:8px;flex-wrap:wrap">${i.status === "new" ? `<button class="btn" id="ack">Acknowledge</button>` : ""}</div>
+  <textarea id="nt" rows="3" style="width:100%;margin-top:8px" placeholder="Notes (no student names needed)"></textarea>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn primary" data-o="confirmed">Confirmed</button><button class="btn" data-o="inconclusive">Inconclusive</button><button class="btn danger" data-o="false_alarm">False alarm</button></div>
+  <p class="small muted">Your feedback tunes keyword weights and sensor trust for this location. Confirmed incidents notify the counselor for follow-up.</p>` : ""}`;
+  d.classList.add("open");
+  $("#dx").onclick = () => d.classList.remove("open");
+  $("#ack") && ($("#ack").onclick = async () => { await api(`/api/incidents/${id}/ack`, {method:"POST"}); openIncident(id); loadIncidents(); });
+  d.querySelectorAll("[data-o]").forEach(b => b.onclick = async () => {
+    await api(`/api/incidents/${id}/resolve`, {method:"POST", body: JSON.stringify({outcome: b.dataset.o, notes: $("#nt").value})});
+    openIncident(id); if (st.tab === "live") loadIncidents();
+  });
+}
+
+// ---------- reports ----------
+async function reportsView(days = 30) {
+  const r = await api("/api/reports/hotspots?days=" + days);
+  const max = Math.max(1, ...Object.values(r.matrix).flat());
+  const hours = [...Array(12)].map((_, k) => k + 6);
+  const hb = (rows, total) => `<div class="hbars">${rows.map(([n, c]) => `<div><span title="${esc(n)}">${esc(TYPE[n] || n)}</span><div class="bar"><i style="width:${100 * c / Math.max(1, total)}%"></i></div><em>${c}</em></div>`).join("") || "<div class='muted'>No data</div>"}</div>`;
+  const topLoc = r.by_location[0]?.[1] || 1;
+  const peakHour = r.by_hour.indexOf(Math.max(...r.by_hour));
+  $("#view").innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><h2 style="margin:0;flex:1">Hotspot report</h2>
+    <select id="rd">${[7,30,90].map(d => `<option value="${d}" ${d===days?"selected":""}>Last ${d} days</option>`).join("")}</select></div>
+  <div class="kpis"><div class="kpi"><div class="v">${r.total}</div><div class="l">Incidents (excl. false alarms)</div></div>
+  <div class="kpi"><div class="v">${(r.by_level.critical||0)+(r.by_level.high||0)}</div><div class="l">High / critical</div></div>
+  <div class="kpi"><div class="v">${r.total ? String(peakHour).padStart(2,"0")+":00" : "—"}</div><div class="l">Peak hour</div></div>
+  <div class="kpi"><div class="v">${r.precision != null ? Math.round(r.precision*100)+"%" : "—"}</div><div class="l">Confirmed rate (staff feedback)</div></div></div>
+  <div class="card heat"><h2>Where and when</h2><table><thead><tr><th></th>${hours.map(h => `<th>${String(h).padStart(2,"0")}</th>`).join("")}</tr></thead><tbody>
+  ${Object.entries(r.matrix).sort((a,b) => b[1].reduce((x,y)=>x+y) - a[1].reduce((x,y)=>x+y)).map(([loc, hs]) => `<tr><td class="name">${esc(loc)}</td>${hours.map(h => `<td class="c" title="${hs[h]} at ${h}:00" style="background:${hs[h] ? `color-mix(in srgb, var(--crit) ${15 + 85*hs[h]/max}%, transparent)` : "var(--bg)"}">${hs[h]||""}</td>`).join("")}</tr>`).join("") || `<tr><td class="muted">No data yet</td></tr>`}
+  </tbody></table></div>
+  <div class="row"><div class="card"><h2>By location</h2>${hb(r.by_location, topLoc)}</div><div class="card"><h2>By detection type</h2>${hb(r.by_type, r.by_type[0]?.[1])}</div>
+  <div class="card"><h2>By weekday</h2>${hb(["Mon","Tue","Wed","Thu","Fri"].map(d => [d, r.by_weekday[d]||0]), Math.max(1,...Object.values(r.by_weekday)))}</div></div>`;
+  $("#rd").onchange = e => reportsView(+e.target.value);
+}
+
+// ---------- keywords ----------
+async function keywordsView() {
+  const {version, keywords} = await api("/api/keywords"), edit = has("keywords:edit");
+  const cats = ["drug_name","drug_slang","deal_phrase","hiding_phrase"];
+  $("#view").innerHTML = `<div class="card"><h2>Keyword list <span class="muted small">version ${version} · pushed to devices on next sync</span></h2>
+  ${edit ? `<form id="kf" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><input name="term" placeholder="New term or slang" required dir="auto" style="flex:2;min-width:160px">
+    <select name="lang"><option value="en">English</option><option value="ar">Arabic</option></select>
+    <select name="category">${cats.map(c => `<option value="${c}">${c.replace("_"," ")}</option>`).join("")}</select>
+    <button class="btn primary">Add</button></form><div id="kerr" class="small" style="color:var(--crit)"></div>` : ""}
+  <p class="small muted">Only these terms are recognised on the device; everything else is ignored. Effective weight = base × staff-feedback factor.</p>
+  <div style="overflow-x:auto"><table><thead><tr><th>Term</th><th>Lang</th><th>Category</th><th>Weight</th><th class="hide-sm">Feedback</th><th>On</th>${edit?"<th></th>":""}</tr></thead><tbody>
+  ${keywords.map(k => `<tr><td dir="auto"><b>${esc(k.term)}</b>${k.suggest_review ? ` <span class="pill high">review</span>` : ""}</td><td>${k.lang}</td><td class="small">${k.category.replace("_"," ")}</td>
+    <td class="small">${k.effective_weight.toFixed(2)}${k.feedback_factor !== 1 ? ` <span class="muted">(${k.base_weight}×${k.feedback_factor})</span>` : ""}</td>
+    <td class="hide-sm small muted">✓${k.confirmed} ✗${k.false_alarms}</td>
+    <td><input type="checkbox" data-k="${k.id}" ${k.enabled?"checked":""} ${edit?"":"disabled"}></td>${edit?`<td><button class="btn danger small" data-del="${k.id}">✕</button></td>`:""}</tr>`).join("")}
+  </tbody></table></div></div>`;
+  if (!edit) return;
+  $("#kf").onsubmit = async e => { e.preventDefault(); const f = e.target;
+    try { await api("/api/keywords", {method:"POST", body: JSON.stringify({term: f.term.value, lang: f.lang.value, category: f.category.value})}); keywordsView(); }
+    catch (err) { $("#kerr").textContent = err.message; } };
+  document.querySelectorAll("[data-k]").forEach(c => c.onchange = () => api("/api/keywords/" + c.dataset.k, {method:"PATCH", body: JSON.stringify({enabled: c.checked})}));
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => { if (confirm("Delete this term?")) { await api("/api/keywords/" + b.dataset.del, {method:"DELETE"}); keywordsView(); } });
+}
+
+// ---------- devices ----------
+async function devicesView() {
+  const [devs, locs] = await Promise.all([api("/api/devices"), api("/api/locations")]);
+  const online = t => t && (Date.now() - new Date(t)) < 10 * 60e3;
+  $("#view").innerHTML = `<div class="card"><h2>Edge devices</h2><div style="overflow-x:auto"><table><thead><tr><th>Device</th><th>Location</th><th>Last seen</th><th>Keyword list</th></tr></thead><tbody>
+  ${devs.map(d => `<tr><td><b>${esc(d.id)}</b><div class="small muted">${esc(d.name)}</div></td><td>${esc(d.location_name)}</td>
+    <td>${d.last_seen ? `<span class="pill ${online(d.last_seen)?"okp":"low"}">${online(d.last_seen)?"online":"idle"}</span> <span class="small muted">${fmtTime(d.last_seen)}</span>` : "<span class='muted'>never</span>"}</td>
+    <td class="small">${d.keyword_list_version ? "v" + d.keyword_list_version : "—"}</td></tr>`).join("")}</tbody></table></div>
+  <h3>Register a device</h3><form id="df" style="display:flex;gap:8px;flex-wrap:wrap"><input name="id" placeholder="Device ID" required><select name="loc">${locs.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join("")}</select><input name="name" placeholder="Label"><button class="btn primary">Register</button></form><div id="dk" class="small" style="margin-top:8px"></div></div>
+  <div class="card"><h2>Locations</h2><div style="overflow-x:auto"><table><thead><tr><th>Location</th><th>Type</th><th>Cameras (outside only)</th><th>Sensor trust</th></tr></thead><tbody>
+  ${locs.map(l => `<tr><td>${esc(l.name)} ${l.sensitive ? `<span class="pill low">no cameras inside</span>` : ""}</td><td class="small">${l.type.replace("_"," ")}</td><td class="small muted">${l.cameras.map(esc).join(", ")}</td><td class="small muted">✓${l.sensor_confirmed} ✗${l.sensor_false}</td></tr>`).join("")}</tbody></table></div></div>`;
+  $("#df").onsubmit = async e => { e.preventDefault(); const f = e.target;
+    try { const r = await api("/api/devices", {method:"POST", body: JSON.stringify({id: f.id.value, location_id: f.loc.value, name: f.name.value})});
+      $("#dk").innerHTML = `Device key (shown once): <code>${esc(r.device_key)}</code>`; } catch (err) { $("#dk").textContent = err.message; } };
+}
+
+// ---------- audit ----------
+async function auditView() {
+  const rows = await api("/api/audit?limit=300");
+  $("#view").innerHTML = `<div class="card"><h2>Audit log</h2><p class="small muted">Every sign-in, incident view, response and configuration change is recorded.</p><div style="overflow-x:auto"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Target</th><th class="hide-sm">Detail</th></tr></thead><tbody>
+  ${rows.map(r => `<tr><td class="small">${fmtTime(r.ts)}</td><td>${esc(r.actor)}</td><td>${esc(r.action)}</td><td class="small">${esc(r.target)}</td><td class="small muted hide-sm">${esc(r.detail)}</td></tr>`).join("")}</tbody></table></div></div>`;
+}
+
+// ---------- settings ----------
+async function settingsView() {
+  const s = await api("/api/settings");
+  $("#view").innerHTML = `<div class="card" style="max-width:560px"><h2>School settings</h2><form id="sf">
+  <label class="small muted">Alert threshold (fusion score that notifies staff)</label><div style="display:flex;gap:10px;align-items:center"><input type="range" name="t" min="40" max="90" value="${s.alert_threshold}" style="flex:1"><b id="tv">${s.alert_threshold}</b></div>
+  <label class="small muted" style="display:block;margin-top:12px">Data retention (days) — incidents are deleted after this</label><input type="number" name="r" min="7" max="730" value="${s.retention_days}">
+  <label class="small muted" style="display:block;margin-top:12px">Mobile push / SMS webhooks per role (JSON)</label><textarea name="w" rows="4" style="width:100%">${esc(JSON.stringify(s.notify_webhooks, null, 2))}</textarea>
+  <div style="margin-top:12px"><button class="btn primary">Save</button> <span id="ss" class="small muted"></span></div></form></div>`;
+  $("#sf").t.oninput = e => $("#tv").textContent = e.target.value;
+  $("#sf").onsubmit = async e => { e.preventDefault(); const f = e.target;
+    try { await api("/api/settings", {method:"PATCH", body: JSON.stringify({alert_threshold: +f.t.value, retention_days: +f.r.value, notify_webhooks: JSON.parse(f.w.value || "{}")})}); $("#ss").textContent = "Saved"; }
+    catch (err) { $("#ss").textContent = err.message; } };
+}
+
+render();
+</script>
+</body>
+</html>
