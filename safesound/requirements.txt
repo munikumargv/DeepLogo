@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.6
+httpx>=0.27
+pytest>=8
+# Optional, only on real hardware:
+# vosk>=0.3.45        # on-device constrained-grammar keyword recognition
+# sounddevice>=0.4    # microphone capture into an in-memory ring buffer
